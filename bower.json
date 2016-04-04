@@ -1,0 +1,49 @@
+{
+  "name": "chat",
+  "description": "chat",
+  "main": "",
+  "authors": [
+    "yjseo29"
+  ],
+  "license": "MIT",
+  "moduleType": [],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "install": {
+    "path": {
+      "css": "public/css",
+      "js": "public/js",
+      "eot": "public/fonts",
+      "svg": "public/fonts",
+      "ttf": "public/fonts",
+      "woff": "public/fonts"
+    },
+    "sources": {
+      "jquery": {
+        "mapping" : [
+          {"bower_components/jquery/jquery.min.js":"../jquery.min.js"}
+        ]
+      },
+      "Ionicons": {
+        "mapping" : [
+          {"bower_components/Ionicons/css/ionicons.min.css":"../ionicons.min.css"},
+          {"bower_components/Ionicons/fonts/ionicons.eot":"../ionicons.eot"},
+          {"bower_components/Ionicons/fonts/ionicons.svg":"../ionicons.svg"},
+          {"bower_components/Ionicons/fonts/ionicons.ttf":"../ionicons.ttf"},
+          {"bower_components/Ionicons/fonts/ionicons.woff":"../ionicons.woff"}
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "jquery": "1.9.1",
+    "Ionicons": "ionicons#^2.0.1"
+  }
+}

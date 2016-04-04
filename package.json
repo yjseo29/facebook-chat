@@ -1,0 +1,24 @@
+{
+  "author": "yjseo29",
+  "name": "chat",
+  "description": "chat",
+  "version": "0.1.0",
+  "homepage": "http://yjteam.co.kr",
+  "repository": "https://github.com/yjseo29/socket.io-chat.git",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "~1.13.2",
+    "bower": "^1.7.7",
+    "cookie-parser": "~1.3.5",
+    "ejs": "^2.4.1",
+    "express": "~4.13.1",
+    "express-session": "^1.13.0",
+    "express-socket.io-session": "^1.3.1",
+    "grunt": "^0.4.5",
+    "passport": "^0.3.2",
+    "passport-facebook": "^2.1.0",
+    "serve-favicon": "~2.3.0",
+    "socket.io": "^1.4.5"
+  }
+}
