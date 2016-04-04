@@ -1,5 +1,5 @@
-# omok
-node.js game omok
+# facebook chat
+node.js web chat
 
 ### node.js
 ```
