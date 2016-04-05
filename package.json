@@ -4,7 +4,7 @@
   "description": "chat",
   "version": "0.1.0",
   "homepage": "http://yjteam.co.kr",
-  "repository": "https://github.com/yjseo29/socket.io-chat.git",
+  "repository": "https://github.com/yjseo29/facebook-chat.git",
   "private": true,
   "license": "MIT",
   "dependencies": {

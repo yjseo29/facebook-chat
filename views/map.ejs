@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="Author" content="">
+	<meta name="Keywords" content="">
+	<meta name="Description" content="">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>chat</title>
+	<link href="css/global-style.css" rel="stylesheet">
+	<link href="css/ionicons.min.css" rel="stylesheet">
+	<style type="text/css">
+		#googleMap{
+			width: 100%;
+			height: 500px;
+		}
+	</style>
+</head>
+<body>
+<form id="form" action="/setLocation" method="post">
+	<input type="hidden" name="lat" id="lat">
+	<input type="hidden" name="lng" id="lng">
+	<div class="wrap">
+		<div class="inner">
+			<div id="googleMap"></div>
+			<button type="button" class="btn-white" onclick="nextBtn()">다음</button>
+		</div>
+	</div>
+</form>
+<!--script -->
+<script src="js/jquery.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+
+<script>
+	var socket = io();
+	var lat = 37.5651;
+	var lng = 126.98955;
+
+	$(function(){
+		getGeoLocation();
+		$("#lat").val(lat);
+		$("#lng").val(lng);
+	});
+
+	function nextBtn(){
+		var user = new Object();
+
+		socket.emit("add_user", {
+			id: "<%= user.id %>",
+			displayName: "<%= user.displayName %>",
+			lat: lat,
+			lng: lng,
+			gender: "<%= user.gender %>"
+		});
+
+		$("#form").submit();
+	}
+
+	function initialize(){
+		var mapOptions = {
+			zoom : 16, //기본 확대율
+			center : new google.maps.LatLng(lat, lng), // 지도 중앙 위치
+			scrollwheel : true, //마우스 휠로 확대 축소 사용 여부
+			mapTypeControl : false //맵 타입 컨트롤 사용 여부
+		};
+		map = new google.maps.Map(document.getElementById('googleMap'), mapOptions);
+
+		var markerLatLng = new google.maps.LatLng(lat, lng);
+		var marker = new google.maps.Marker({
+			position: markerLatLng,
+			map: map,
+			title: '<%= user.displayName %>',
+			draggable: false,
+			animation: google.maps.Animation.DROP,
+			icon: 'http://graph.facebook.com/<%= user.id %>/picture?type=square'
+		});
+
+		google.maps.event.addListener(map, 'click', function( event ){
+			console.log( "Latitude: "+event.latLng.lat()+" "+", longitude: "+event.latLng.lng() );
+			lat = event.latLng.lat();
+			lng = event.latLng.lng();
+			$("#lat").val(lat);
+			$("#lng").val(lng);
+			marker.setPosition(event.latLng);
+			google.maps.event.addListener(marker, 'click', function(){
+				infowindow.open(map, marker);
+			});
+		});
+		google.maps.event.addListener(map, 'dragend', function(){
+			$("#mapDialogMessage").fadeOut(500);
+		});
+}
+
+	function getGeoLocation(obj){
+		if("geolocation" in navigator){
+			//console.log("지오로케이션 사용 가능");
+			navigator.geolocation.getCurrentPosition(function(position) {
+				lat = position.coords.latitude;
+				lng = position.coords.longitude;
+				$("#lat").val(lat);
+				$("#lng").val(lng);
+				initialize();
+			}, function(error){
+				alert("현재위치를 불러올 수 없습니다.");
+				console.log(error);
+				initialize();
+			});
+		}else{
+			alert("현재위치를 불러올 수 없습니다.");
+			initialize();
+			//console.log("지오로케이션 사용 불가능");
+		}
+	}
+</script>
+</body>
+</html>

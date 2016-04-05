@@ -12,15 +12,16 @@
 	<link href="css/ionicons.min.css" rel="stylesheet">
 </head>
 <body>
-<form method="post" action="/home">
-	<input type="hidden" name="username">
-	<input type="hidden" name="fbId">
-</form>
+<div class="wrap">
+	<div class="inner">
+		<a href="/auth/facebook">facebook login</a>
+	</div>
+</div>
+
 <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
 </fb:login-button>
 <div id="status">
 </div>
-<a href="/auth/facebook">facebook login</a>
 <!--script -->
 <script src="js/jquery.min.js"></script>
 <script>
@@ -67,8 +68,6 @@
 					'Thanks for logging in, ' + response.name + '!';
 		});
 	}
-
-
 
 	window.fbAsyncInit = function() {
 		FB.init({

@@ -1,5 +1,5 @@
 module.exports = init;
-function init(app) {
+function init(app, io, userList) {
 	var passport = require('passport');
 	app.use(passport.initialize());
 	app.use(passport.session());
@@ -15,7 +15,8 @@ function init(app) {
 	passport.use(new FacebookStrategy({
 			clientID: "801142736696953",
 			clientSecret: "79d11bcddba54aa3125b30dec5ab4fc2",
-			callbackURL: "http://localhost:3020/auth/facebook/callback"
+			callbackURL: "http://localhost:3020/auth/facebook/callback",
+			profileFields: ['id', 'gender', 'locale', 'name', 'timezone', 'displayName']
 		},
 		function (accessToken, refreshToken, profile, done) {
 			//
@@ -41,6 +42,9 @@ function init(app) {
 		// passport 에서 지원하는 logout 메소드이다.
 		// req.session.passport 의 정보를 삭제한다.
 		//
+
+		req.session.destroy();
+
 		req.logout();
 		res.redirect('/');
 	});

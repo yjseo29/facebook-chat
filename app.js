@@ -31,15 +31,60 @@ var session = require('express-session')({
 	saveUninitialized: true
 }),
 sharedsession = require("express-socket.io-session");
-
 app.use(session);
 
-//
-// controller
-//
-require('./routes/oauth')(app);
-app.use('/', routes);
+// 전역 변수
+var userList = [];
 
+//controller
+require('./routes/oauth')(app,io,userList);
+require('./routes/index')(app,io,userList);
+
+// socket
+io.on('connection',function(socket){
+
+	socket.on('add_user', function(data){
+		console.log(data);
+		io.sockets.in("map").emit("res_add_user", {user: data});
+	});
+
+	socket.on('join_map', function(data){
+		socket.room = "map";
+		socket.join("map");
+		//클라이언트에게 사용자 리스트 전송
+		var users = new Array();
+		for (var key in userList) {
+			users.push(userList[key]);
+		}
+		socket.emit("userlist", {users: users});
+	});
+
+	socket.on('leave_map', function(data){
+		socket.leave("map");
+	})
+
+	/** 랜덤사용자 찾기 **/
+	socket.on('find_user', function(data){
+		userList[data.id].random = true;
+		for (var key in userList) {
+			users.push(userList[key]);
+		}
+	});
+
+	/** 로그아웃 **/
+	socket.on('logout', function(data){
+		socket.leave("map");
+
+		//사용자 리스트 삭제
+		io.sockets.in("map").emit("res_delete_user", {id: userList[data.id].id});
+		delete userList[data.id];
+	});
+
+	/** 접속 해제 **/
+	socket.on('disconnect', function(){
+
+	});
+});
 
 
 // catch 404 and forward to error handler

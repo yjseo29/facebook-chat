@@ -15,34 +15,71 @@
 			width: 100%;
 			height: 500px;
 		}
+		.profile{
+			margin-bottom: 15px;
+		}
+		.profile > img{
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			vertical-align: middle;
+			margin-right: 8px;
+		}
 	</style>
 </head>
 <body>
-<form action="/setLocation" method="post">
-	<input type="hidden" name="lat" id="lat">
-	<input type="hidden" name="lng" id="lng">
-	<div class="wrap">
-		<div class="inner">
+<div class="wrap">
+	<div class="inner">
+		<div class="profile">
 			<img src="http://graph.facebook.com/<%= user.id %>/picture?type=square">
-			<div id="googleMap"></div>
-			<button type="submit" class="btn-white">다음</button>
+			<span><%= user.displayName %>님 환영합니다!</span>
 		</div>
+		<button type="button" onclick="btnRandom()">랜덤 찾기</button>
+		<button type="button" onclick="btnShowMap()">주변 검색</button>
+		<button type="button" onclick="btnLogout()">로그아웃</button>
 	</div>
-</form>
+</div>
+<div class="modal" id="mapLayout">
+	<div class="modal-inner">
+		<div id="googleMap"></div>
+	</div>
+</div>
 <!--script -->
 <script src="js/jquery.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 
 <script>
-	var lat = 37.5651;
-	var lng = 126.98955;
+	var socket = io();
+	var lat = "<%= lat %>";
+	var lng = "<%= lng %>";
+	var markers = [];
+	var infowindow = new google.maps.InfoWindow();
 
 	$(function(){
-		getGeoLocation();
 		$("#lat").val(lat);
 		$("#lng").val(lng);
 	});
 
+
+	function btnRandom(){
+		socket.emit("find_user", {id:"<%= user.id %>"});
+	}
+
+	function btnShowMap(){
+		$('#mapLayout').css('display','table');
+		socket.emit("join_map");
+		deleteAllMarkers();
+		if($("#googleMap").has("div").length == 0){
+			initialize();
+		}
+	}
+
+	//로그아웃
+	function btnLogout(){
+		socket.emit("logout", {id:"<%= user.id %>"});
+		location.href = "/logout";
+	}
 
 	function initialize(){
 		var mapOptions = {
@@ -53,28 +90,11 @@
 		};
 		map = new google.maps.Map(document.getElementById('googleMap'), mapOptions);
 
-		var markerLatLng = new google.maps.LatLng(lat, lng);
-		var marker = new google.maps.Marker({
-			position: markerLatLng,
-			map: map,
-			title: '<%= user.displayName %>',
-			draggable: false,
-			icon: 'http://graph.facebook.com/<%= user.id %>/picture?type=square'
-		});
-
 		google.maps.event.addListener(map, 'click', function( event ){
-			console.log( "Latitude: "+event.latLng.lat()+" "+", longitude: "+event.latLng.lng() );
-			lat = event.latLng.lat();
-			lng = event.latLng.lng();
-			$("#lat").val(lat);
-			$("#lng").val(lng);
-			marker.setPosition(event.latLng);
-			google.maps.event.addListener(marker, 'click', function(){
-				infowindow.open(map, marker);
-			});
+			console.log("map clicked !");
 		});
 		google.maps.event.addListener(map, 'dragend', function(){
-			$("#mapDialogMessage").fadeOut(500);
+			console.log("drag end !")
 		});
 }
 
@@ -96,6 +116,58 @@
 			//console.log("지오로케이션 사용 불가능");
 		}
 	}
+
+	function deleteAllMarkers(){
+		for (var key in markers) {
+			markers[key].marker.setMap(null);
+			google.maps.event.clearInstanceListeners(markers[key].marker);
+		}
+		markers = [];
+	}
+
+	function createMarker(lat, lng, id, html) {
+		var marker = new google.maps.Marker({
+			position: new google.maps.LatLng(lat, lng),
+			map: map,
+			draggable: false,
+			animation: google.maps.Animation.DROP,
+			icon: 'http://graph.facebook.com/'+id+'/picture?type=square'
+		});
+		google.maps.event.addListener(marker, 'click', function () {
+			infowindow.setContent(html);
+			infowindow.open(map, marker);
+		});
+		markers[id] = new Object();
+		markers[id].marker = marker;
+	}
+
+	$(document).on("click", ".modal-inner", function(e){
+		if( e.target !== this ) return;
+		$(this).parent().hide();
+		socket.emit("leave_map");
+	});
+
+	//사용자 리스트 가져오기
+	socket.on('userlist',function(data){
+		for(var i=0; i< data.users.length; i++){
+			/*var infowindow = new google.maps.InfoWindow({
+				content: '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.users[i].name+'</div></div>'
+			});*/
+			createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.users[i].name+'</div></div>');
+		}
+	});
+
+	//사용자 추가
+	socket.on('res_add_user',function(data){
+		createMarker(data.user.lat, data.user.lng, data.user.id, '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.user.name+'</div></div>');
+	});
+
+	//사용자 삭제
+	socket.on('res_delete_user',function(data){
+		markers[data.id].marker.setMap(null);
+		google.maps.event.clearInstanceListeners(markers[data.id].marker);
+		delete markers[data.id];
+	});
 </script>
 </body>
 </html>
