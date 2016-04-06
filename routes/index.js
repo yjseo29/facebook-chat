@@ -2,8 +2,6 @@ module.exports = function(app, io, userList) {
 
 	/* 메인 페이지 */
 	app.get('/', function(req, res, next) {
-		console.log(req.session.passport);
-		console.log(req.isAuthenticated());
 		if(req.session.passport !== undefined){
 			if(req.session.lat !== undefined){
 				res.render('home', { user: req.session.passport.user, lat: req.session.lat, lng: req.session.lng });

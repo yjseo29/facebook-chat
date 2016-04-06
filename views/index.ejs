@@ -10,21 +10,36 @@
 	<title>chat</title>
 	<link href="css/global-style.css" rel="stylesheet">
 	<link href="css/ionicons.min.css" rel="stylesheet">
+	<style type="text/css">
+		.btn-facebook{
+			text-decoration: none;
+			display: inline-block;
+			position: relative;
+			padding-left: 45px;
+			color: #4e5665;
+		}
+		.btn-facebook i{
+			position: absolute;
+			left: 0;
+		}
+		.btn-facebook i:before{
+			font-size: 22px;
+		}
+	</style>
 </head>
 <body>
 <div class="wrap">
 	<div class="inner">
-		<a href="/auth/facebook">facebook login</a>
+
+		<a href="/auth/facebook" class="btn-facebook"><i class="ion-social-facebook"></i>facebook login</a>
 	</div>
 </div>
 
-<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-</fb:login-button>
 <div id="status">
 </div>
 <!--script -->
 <script src="js/jquery.min.js"></script>
-<script>
+<!--<script>
 	// This is called with the results from from FB.getLoginStatus().
 	function statusChangeCallback(response) {
 		console.log('statusChangeCallback');
@@ -85,6 +100,6 @@
 		js.src = "//connect.facebook.net/ko_KR/sdk.js";
 		fjs.parentNode.insertBefore(js, fjs);
 	}(document, 'script', 'facebook-jssdk'));
-</script>
+</script>-->
 </body>
 </html>

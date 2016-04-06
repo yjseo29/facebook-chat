@@ -13,7 +13,7 @@
 	<style type="text/css">
 		#googleMap{
 			width: 100%;
-			height: 500px;
+			height: 100%;
 		}
 		.profile{
 			margin-bottom: 15px;
@@ -25,25 +25,87 @@
 			vertical-align: middle;
 			margin-right: 8px;
 		}
+		#mapLayout{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 9999;
+			display: none;
+		}
+		#mapLayout > .close{
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			z-index: 10000;
+			background-color: transparent;
+			border: 0;
+			font-size: 28px;
+			color: #929292;
+			text-shadow: 0 1px 0 #fff;
+		}
+		#mapLayout > .close:hover {
+			color: #656565;
+		}
+		.chat-profile > img{
+			width: 65px;
+			height: 65px;
+			border-radius: 50%;
+			margin-bottom: 5px;
+		}
+		.chat-profile > p{
+			color: #4e5665;
+			font-size: 15px;
+		}
 	</style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="mainLayout">
 	<div class="inner">
 		<div class="profile">
 			<img src="http://graph.facebook.com/<%= user.id %>/picture?type=square">
 			<span><%= user.displayName %>님 환영합니다!</span>
 		</div>
+		<span class="spinner"></span>
 		<button type="button" onclick="btnRandom()">랜덤 찾기</button>
 		<button type="button" onclick="btnShowMap()">주변 검색</button>
 		<button type="button" onclick="btnLogout()">로그아웃</button>
 	</div>
 </div>
-<div class="modal" id="mapLayout">
-	<div class="modal-inner">
-		<div id="googleMap"></div>
+<div id="mapLayout">
+	<div id="googleMap"></div>
+	<button type="button" class="close" onclick="btnHideMap()" title="닫기">×</button>
+</div>
+<div id="chatLayout" class="wrap" style="z-index:9999;display:none;">
+	<div class="inner">
+		<div class="chat-profile" id="chatProfile"></div>
 	</div>
 </div>
+
+<div id="inviteLayout" class="modal">
+	<div class="modal-inner">
+		<div class="modal-content" style="text-align:center;">
+			<p><storng id="inviteForUsername"></storng>님에게 대화요청중입니다...</p>
+			<span id="inviteLeftTime" style="font-size:24px;font-weight:200;display:inline-block;margin-bottom:10px;">15</span>
+		</div>
+	</div>
+</div>
+
+<div id="resInviteLayout" class="modal">
+	<div class="modal-inner">
+		<div class="modal-content" style="text-align:center;">
+			<img id="resInviteProfileImage" style="width:50px;height:50px;border-radius:50%;">
+			<p><strong id="resInviteUsername"></strong>님이 대화를 요청하였습니다.</p>
+			<span id="resInviteLeftTime" style="font-size:24px;font-weight:200;display:block;margin-bottom:10px;margin-top:10px;">15</span>
+			<div>
+				<button type="button">수락</button>
+				<button type="button">거절</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <!--script -->
 <script src="js/jquery.min.js"></script>
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
@@ -55,6 +117,10 @@
 	var lng = "<%= lng %>";
 	var markers = [];
 	var infowindow = new google.maps.InfoWindow();
+	var inviteLeftTimeInterval;
+	var resInviteLeftTimeInterval;
+
+	socket.emit("init_socket_id", {id:"<%= user.id %>"});
 
 	$(function(){
 		$("#lat").val(lat);
@@ -63,11 +129,11 @@
 
 
 	function btnRandom(){
-		socket.emit("find_user", {id:"<%= user.id %>"});
+		socket.emit("find_user", {id:"<%= user.id %>", gender:"male"});
 	}
 
 	function btnShowMap(){
-		$('#mapLayout').css('display','table');
+		$('#mapLayout').show();
 		socket.emit("join_map");
 		deleteAllMarkers();
 		if($("#googleMap").has("div").length == 0){
@@ -75,10 +141,17 @@
 		}
 	}
 
+	function btnHideMap(){
+		$('#mapLayout').hide();
+		socket.emit("leave_map");
+	}
+
 	//로그아웃
 	function btnLogout(){
-		socket.emit("logout", {id:"<%= user.id %>"});
-		location.href = "/logout";
+		if(confirm("로그아웃 하시겠습니까?")){
+			socket.emit("logout", {id:"<%= user.id %>"});
+			location.href = "/logout";
+		}
 	}
 
 	function initialize(){
@@ -141,11 +214,24 @@
 		markers[id].marker = marker;
 	}
 
-	$(document).on("click", ".modal-inner", function(e){
-		if( e.target !== this ) return;
-		$(this).parent().hide();
-		socket.emit("leave_map");
-	});
+	//대화요청
+	function inviteChat(uid, name){
+		$("#inviteLayout").css("display","table");
+		$("#inviteForUsername").html(name);
+		socket.emit("invite_chat", {id:"<%= user.id %>", uid:uid});
+
+		inviteLeftTimeInterval = setInterval(function(){
+			var second = parseInt($("#inviteLeftTime").text());
+			second--;
+			$("#inviteLeftTime").html(second);
+			if(second == 0){
+				clearInterval(inviteLeftTimeInterval);
+				alert("상대방이 응답하지 않습니다");
+				$("#inviteLayout").hide();
+				$("#inviteLeftTime").html("15");
+			}
+		},1000);
+	}
 
 	//사용자 리스트 가져오기
 	socket.on('userlist',function(data){
@@ -153,13 +239,13 @@
 			/*var infowindow = new google.maps.InfoWindow({
 				content: '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.users[i].name+'</div></div>'
 			});*/
-			createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.users[i].name+'</div></div>');
+			createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="bodyContent"><p>'+data.users[i].name+'</p><button type="button" onclick="inviteChat(\''+data.users[i].id+'\', \''+data.users[i].name+'\')">대화요청</div></div>');
 		}
 	});
 
 	//사용자 추가
 	socket.on('res_add_user',function(data){
-		createMarker(data.user.lat, data.user.lng, data.user.id, '<div id="content"><div id="siteNotice"></div><div id="bodyContent">'+data.user.name+'</div></div>');
+		createMarker(data.user.lat, data.user.lng, data.user.id, '<div id="content"><div id="bodyContent"><p>'+data.user.name+'</p><button type="button" onclick="inviteChat(\''+data.user.id+'\', \''+data.user.name+'\')">대화요청</div></div>');
 	});
 
 	//사용자 삭제
@@ -167,6 +253,39 @@
 		markers[data.id].marker.setMap(null);
 		google.maps.event.clearInstanceListeners(markers[data.id].marker);
 		delete markers[data.id];
+	});
+
+	// 랜덤대화 응답
+	socket.on('init_random', function(data){
+		console.log(data);
+		if(data.result == "success"){
+			$("#mainLayout").hide();
+			$("#chatLayout").show();
+			$("#chatProfile").show().empty().append("<img src='http://graph.facebook.com/"+data.user.id+"/picture?type=square'><p>"+data.user.name+"님과 매칭되었습니다.<br>곧 대화가 시작됩니다.</p>");
+			socket.emit("init_chat", {uid:data.uid});
+		}
+	});
+
+	// 대화요청 응답
+	socket.on('res_invite_chat', function(data){
+		$("#resInviteProfileImage").attr("src", "http://graph.facebook.com/"+data.id+"/picture?type=square");
+		$("#resInviteUsername").html(data.name);
+		$("#resInviteLayout").css("display","table");
+		resInviteLeftTimeInterval = setInterval(function(){
+			var second = parseInt($("#resInviteLeftTime").text());
+			second--;
+			$("#resInviteLeftTime").html(second);
+			if(second == 0){
+				clearInterval(resInviteLeftTimeInterval);
+				$("#resInviteLayout").hide();
+				$("#resInviteLeftTime").html("15");
+			}
+		},1000);
+	});
+
+	// 대화 시스템 메시지 응답
+	socket.on('broadcast_message',function(data){
+		console.log(data);
 	});
 </script>
 </body>

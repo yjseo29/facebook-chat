@@ -41,10 +41,13 @@ require('./routes/oauth')(app,io,userList);
 require('./routes/index')(app,io,userList);
 
 // socket
-io.on('connection',function(socket){
+io.sockets.on('connection',function(socket){
+
+	socket.on('init_socket_id', function(data){
+		userList[data.id].socket_id = socket.id;
+	});
 
 	socket.on('add_user', function(data){
-		console.log(data);
 		io.sockets.in("map").emit("res_add_user", {user: data});
 	});
 
@@ -61,14 +64,43 @@ io.on('connection',function(socket){
 
 	socket.on('leave_map', function(data){
 		socket.leave("map");
-	})
+	});
 
 	/** 랜덤사용자 찾기 **/
 	socket.on('find_user', function(data){
 		userList[data.id].random = true;
+		userList[data.id].socket_id = socket.id;
+		socket.username = userList[data.id].name;
+
+		var userArray = new Array();
 		for (var key in userList) {
-			users.push(userList[key]);
+			if(userList[key].random && userList[key].id != data.id && userList[key].gender == data.gender){
+				userArray.push(userList[key]);
+			}
 		}
+		if(userArray.length == 0){
+			socket.emit("init_random", {result: "fail"});
+		}else{
+			var targetUser = userArray[Math.floor(Math.random()*userArray.length)];
+
+			userList[data.id].random = false;
+			targetUser.random = false;
+
+			io.sockets.in(userList[data.id].socket_id).emit("init_random", {user: targetUser, result: "success", uid:data.id});
+			io.sockets.in(targetUser.socket_id).emit("init_random", {user: userList[data.id], result: "success", uid:data.id});
+		}
+	});
+
+	/** 대화방 초기화 **/
+	socket.on('init_chat', function(data){
+		socket.room = data.uid;
+		socket.join(data.uid);
+		io.sockets.in(data.uid).emit("broadcast_message", {msg: socket.username+"님이 입장하였습니다.", time:getTime()});
+	});
+
+	/** 대화초대 **/
+	socket.on('invite_chat', function(data){
+		io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
 	});
 
 	/** 로그아웃 **/
@@ -85,7 +117,6 @@ io.on('connection',function(socket){
 
 	});
 });
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -117,5 +148,24 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+function getTime(){
+	var date = new Date();
+	var time;
+	if (date.getHours() <= 12) {
+		time = "오전 "+date.getHours()+":"+parseMinute(date.getMinutes());
+	}else {
+		time = "오후 "+(date.getHours()-12)+":"+parseMinute(date.getMinutes());
+	}
+	return time;
+}
+
+function parseMinute(minute){
+	if(minute < 10) {
+		return "0" + minute;
+	}else{
+		return minute;
+	}
+}
 
 module.exports = app;
