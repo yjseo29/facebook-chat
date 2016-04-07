@@ -85,11 +85,24 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
+    position: relative;
 }
 .modal-content > .title{
     color: #4e5665;
     font-weight: 400;
     margin-bottom: 25px;
+    font-weight: 300;
+}
+.modal-content > .close{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10000;
+    background-color: transparent;
+    border: 0;
+    font-size: 22px;
+    color: #929292;
+    text-shadow: 0 1px 0 #fff;
 }
 .form-control{
     border: 1px solid rgba(0, 0, 0, .20);
@@ -108,13 +121,22 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .form-control:focus{
     border: 1px solid #0084ff;
 }
-.btn-white{
+.btn{
     margin-top:15px;
-    color:#0084ff;
     border:0;
     outline:none;
-    font-size:20px;
     background:#fff;
+    font-size: 15px;
+    padding: 6px 12px;
+}
+.btn.btn-blue{
+    color: #0084ff;
+}
+.btn.btn-green{
+    color: #389438;
+}
+.btn.btn-gray{
+    color: #888;
 }
 .wrap{
     position: absolute;
@@ -132,6 +154,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .inner > .title{
     font-size: 32px;
     color: #565961;
+    font-weight: 300;
 }
 
 /**************** spinnner *******************/

@@ -73,9 +73,17 @@ io.sockets.on('connection',function(socket){
 		socket.username = userList[data.id].name;
 
 		var userArray = new Array();
-		for (var key in userList) {
-			if(userList[key].random && userList[key].id != data.id && userList[key].gender == data.gender){
-				userArray.push(userList[key]);
+		if(data.gender == "all"){
+			for (var key in userList) {
+				if(userList[key].random && userList[key].id != data.id){
+					userArray.push(userList[key]);
+				}
+			}
+		}else{
+			for (var key in userList) {
+				if(userList[key].random && userList[key].id != data.id && userList[key].gender == data.gender){
+					userArray.push(userList[key]);
+				}
 			}
 		}
 		if(userArray.length == 0){
@@ -91,16 +99,53 @@ io.sockets.on('connection',function(socket){
 		}
 	});
 
+	/** 대화시작 상태 중지 **/
+	socket.on('set_fail_random', function(data){
+		userList[data.id].random = false;
+	});
+
 	/** 대화방 초기화 **/
 	socket.on('init_chat', function(data){
 		socket.room = data.uid;
 		socket.join(data.uid);
+		userList[data.id].state = "chat";
+	});
+
+	/** 대화방 시작 **/
+	socket.on('start_chat', function(data){
 		io.sockets.in(data.uid).emit("broadcast_message", {msg: socket.username+"님이 입장하였습니다.", time:getTime()});
 	});
 
 	/** 대화초대 **/
 	socket.on('invite_chat', function(data){
-		io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+		if(userList[data.id].state == "ready"){
+			io.sockets.in(userList[data.id].socket_id).emit("res_invite_chat", {type: "invite", name: userList[data.uid].name, id:data.id, uid:data.uid, time:getTime()});
+			socket.emit("invite_chat_result", {result: true});
+		}else{
+			socket.emit("invite_chat_result", {result: false});
+		}
+	});
+
+	/** 클라이언트 대화초대 응답 **/
+	socket.on('req_invite_accept', function(data){
+		if(data.type == "accept"){
+			io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "accept", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+
+			io.sockets.in(userList[data.id].socket_id).emit("init_random", {user: userList[data.uid], result: "success", uid:data.id});
+			io.sockets.in(userList[data.uid].socket_id).emit("init_random", {user: userList[data.id], result: "success", uid:data.id});
+		}else{
+			io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "reject", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+		}
+	});
+
+	/** 대화 거절 **/
+	socket.on('invite_reject', function(data){
+		io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "reject", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+	});
+
+	/** 대화 수신 **/
+	socket.on('send_msg', function(data){
+		io.sockets.in(socket.room).emit("receive_message", {msg: data.msg, time:getTime(), id:data.id, type:"message", username: socket.username});
 	});
 
 	/** 로그아웃 **/
@@ -114,7 +159,9 @@ io.sockets.on('connection',function(socket){
 
 	/** 접속 해제 **/
 	socket.on('disconnect', function(){
-
+		if(socket.room != undefined){
+			io.sockets.in(socket.room).emit("broadcast_message", {msg: socket.username+"님이 퇴장하였습니다.", time:getTime()});
+		}
 	});
 });
 

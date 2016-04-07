@@ -30,6 +30,7 @@ module.exports = function(app, io, userList) {
 				userList[req.session.passport.user.id].lng = req.body.lng;
 				userList[req.session.passport.user.id].gender = req.user.gender;
 				userList[req.session.passport.user.id].random = false;
+				userList[req.session.passport.user.id].state = "ready";
 			}
 		}
 

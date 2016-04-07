@@ -10,28 +10,43 @@
 	<title>chat</title>
 	<link href="css/global-style.css" rel="stylesheet">
 	<link href="css/ionicons.min.css" rel="stylesheet">
+	<link href="http://fonts.googleapis.com/css?family=Noto+Sans:400" rel="stylesheet">
 	<style type="text/css">
 		.btn-facebook{
 			text-decoration: none;
 			display: inline-block;
 			position: relative;
-			padding-left: 45px;
-			color: #4e5665;
+			color: #fff;
+			border: 1px solid #3b5998;
+			background-color: #3b5998;
+			padding: 10px 52px;
+			border-radius: 4px;
+			font-size: 15px;
+			-webkit-transition: all .2s ease-in-out;
+			-moz-transition: all .2s ease-in-out;
+			-o-transition: all .2s ease-in-out;
+			transition: all .2s ease-in-out;
+			font-family:"Noto Sans","맑은 고딕","Malgun Gothic","Apple SD Gothic Neo","돋움",dotum,Arial,sans-serif;
 		}
 		.btn-facebook i{
 			position: absolute;
-			left: 0;
+			left: 18px;
+			top: 9px;
+
 		}
 		.btn-facebook i:before{
-			font-size: 22px;
+			font-size: 23px;
+		}
+		.btn-facebook:hover{
+			background-color: #2D4373;
 		}
 	</style>
 </head>
 <body>
 <div class="wrap">
 	<div class="inner">
-
-		<a href="/auth/facebook" class="btn-facebook"><i class="ion-social-facebook"></i>facebook login</a>
+		<p style="color:#000;font-size:16px;margin-bottom:20px;font-family:'Noto Sans','맑은 고딕';">시작하려면 로그인 해주세요.</p>
+		<a href="/auth/facebook" class="btn-facebook"><i class="ion-social-facebook"></i>페이스북으로 시작하기</a>
 	</div>
 </div>
 
