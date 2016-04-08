@@ -5,7 +5,11 @@ var express = require('express')
   , bodyParser = require('body-parser')
   , routes = require('./routes/index')
   , app = express()
-  , http = require('http').Server(app);
+  , http = require('http').Server(app)
+  , fs = require('fs')
+  , mkdirp = require('mkdirp')
+  , base64 = require('node-base64-image')
+  , gm = require('gm').subClass({imageMagick: true});
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -29,8 +33,7 @@ var session = require('express-session')({
 	secret: 'sadfwer',
 	resave: true,
 	saveUninitialized: true
-}),
-sharedsession = require("express-socket.io-session");
+});
 app.use(session);
 
 // 전역 변수
@@ -43,14 +46,23 @@ require('./routes/index')(app,io,userList);
 // socket
 io.sockets.on('connection',function(socket){
 
-	socket.on('init_socket_id', function(data){
+	/** 메인페이지 접근시 소켓에 사용자정보 설정 **/
+	socket.on('init_user', function(data){
+		userList[data.id].state = "ready";
 		userList[data.id].socket_id = socket.id;
+		socket.username = data.name;
+		if(socket.room != undefined){
+			io.sockets.in(socket.room).emit("broadcast_message", {msg: socket.username+"님이 퇴장하였습니다.", time:getTime()});
+			socket.leave(socket.room);
+		}
 	});
 
+	/** 로그인한 사용자 맵에 추가 **/
 	socket.on('add_user', function(data){
 		io.sockets.in("map").emit("res_add_user", {user: data});
 	});
 
+	/** 맵 소켓룸 참여 **/
 	socket.on('join_map', function(data){
 		socket.room = "map";
 		socket.join("map");
@@ -62,6 +74,7 @@ io.sockets.on('connection',function(socket){
 		socket.emit("userlist", {users: users});
 	});
 
+	/** 맵 소켓룸 나가기 **/
 	socket.on('leave_map', function(data){
 		socket.leave("map");
 	});
@@ -70,7 +83,6 @@ io.sockets.on('connection',function(socket){
 	socket.on('find_user', function(data){
 		userList[data.id].random = true;
 		userList[data.id].socket_id = socket.id;
-		socket.username = userList[data.id].name;
 
 		var userArray = new Array();
 		if(data.gender == "all"){
@@ -108,6 +120,7 @@ io.sockets.on('connection',function(socket){
 	socket.on('init_chat', function(data){
 		socket.room = data.uid;
 		socket.join(data.uid);
+		socket.username = data.name;
 		userList[data.id].state = "chat";
 	});
 
@@ -116,36 +129,93 @@ io.sockets.on('connection',function(socket){
 		io.sockets.in(data.uid).emit("broadcast_message", {msg: socket.username+"님이 입장하였습니다.", time:getTime()});
 	});
 
+	/** 대화방 나가기 **/
+	socket.on('leave_chat', function(data){
+		if(socket.room != undefined){
+			userList[data.id].state = "ready";
+			io.sockets.in(socket.room).emit("broadcast_message", {msg: socket.username+"님이 퇴장하였습니다.", time:getTime()});
+			socket.leave(socket.room);
+		}
+	});
+
 	/** 대화초대 **/
 	socket.on('invite_chat', function(data){
 		if(userList[data.id].state == "ready"){
 			io.sockets.in(userList[data.id].socket_id).emit("res_invite_chat", {type: "invite", name: userList[data.uid].name, id:data.id, uid:data.uid, time:getTime()});
-			socket.emit("invite_chat_result", {result: true});
+			socket.emit("invite_chat_result", {result: true, name: data.name});
 		}else{
-			socket.emit("invite_chat_result", {result: false});
+			socket.emit("invite_chat_result", {result: false, name: data.name});
 		}
 	});
 
 	/** 클라이언트 대화초대 응답 **/
 	socket.on('req_invite_accept', function(data){
-		if(data.type == "accept"){
-			io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "accept", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+		io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: data.type, name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
+		io.sockets.in(userList[data.id].socket_id).emit("res_invite_chat", {type: data.type, name: userList[data.uid].name, id:data.uid, uid:data.uid, time:getTime()});
 
-			io.sockets.in(userList[data.id].socket_id).emit("init_random", {user: userList[data.uid], result: "success", uid:data.id});
-			io.sockets.in(userList[data.uid].socket_id).emit("init_random", {user: userList[data.id], result: "success", uid:data.id});
-		}else{
-			io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "reject", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
-		}
-	});
-
-	/** 대화 거절 **/
-	socket.on('invite_reject', function(data){
-		io.sockets.in(userList[data.uid].socket_id).emit("res_invite_chat", {type: "reject", name: userList[data.id].name, id:data.id, uid:data.uid, time:getTime()});
 	});
 
 	/** 대화 수신 **/
 	socket.on('send_msg', function(data){
 		io.sockets.in(socket.room).emit("receive_message", {msg: data.msg, time:getTime(), id:data.id, type:"message", username: socket.username});
+	});
+
+	/** 이미지 업로드 처리 **/
+	socket.on('image_upload',function(data){
+		var date = new Date();
+		var path = "upload/original/"+date.getFullYear()+"/"+(date.getMonth()+1)+"/";
+		var thumbPath = "upload/thumb/"+date.getFullYear()+"/"+(date.getMonth()+1)+"/";
+		var fileName = Math.floor(Date.now() / 1000)+randomString();
+
+		var options = {filename: "public/"+path+fileName};
+		var imageData = new Buffer(data.baseurl, 'base64');
+
+		try{
+			fs.statSync("public/"+path).isDirectory();
+			base64.base64decoder(imageData, options, function (err, saved) {
+				fs.stat("public/"+path+fileName+".jpg", function(err, stat) {
+					if (err) { console.log(err); throw err; }
+
+					if(stat.size > 500000){
+						//썸네일 생성
+						gm("public/"+path+fileName+".jpg")
+							.quality(80)
+							.resize(1024, 1024)
+							.autoOrient()
+							.write("public/"+thumbPath+fileName+".jpg", function (err) {
+								//if (!err) console.log('done');
+								io.sockets.in(socket.room).emit('receive_message', {msg:thumbPath+fileName+".jpg",username:socket.username,type:"image",id:data.id,time:getTime()});
+							});
+					}
+				});
+				if (err) { console.log(err); throw err; }
+			});
+		}catch(e){
+			mkdirp("public/"+path, function(err) {
+				if(err) throw err;
+				mkdirp("public/"+thumbPath, function(err) {
+					if(err) throw err;
+					base64.base64decoder(imageData, options, function (err, saved) {
+						if (err) { console.log(err); throw err; }
+
+						fs.stat("public/"+path+fileName+".jpg", function(err, stat) {
+							if (err) { console.log(err); throw err; }
+							if(stat.size > 500000){
+								//썸네일 생성
+								gm("public/"+path+fileName+".jpg")
+									.quality(80)
+									.resize(1024, 1024)
+									.autoOrient()
+									.write("public/"+thumbPath+fileName+".png", function (err) {
+										//if (!err) console.log('done');
+										io.sockets.in(socket.room).emit('receive_message', {msg:thumbPath+fileName+".jpg",username:socket.username,type:"image",id:data.id,time:getTime()});
+									});
+							}
+						});
+					});
+				});
+			});
+		}
 	});
 
 	/** 로그아웃 **/
@@ -161,6 +231,7 @@ io.sockets.on('connection',function(socket){
 	socket.on('disconnect', function(){
 		if(socket.room != undefined){
 			io.sockets.in(socket.room).emit("broadcast_message", {msg: socket.username+"님이 퇴장하였습니다.", time:getTime()});
+			socket.leave(socket.room);
 		}
 	});
 });
@@ -213,6 +284,14 @@ function parseMinute(minute){
 	}else{
 		return minute;
 	}
+}
+
+function randomString(){
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for( var i=0; i < 4; i++ ) text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
 }
 
 module.exports = app;

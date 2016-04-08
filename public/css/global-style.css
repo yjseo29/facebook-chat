@@ -103,6 +103,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-size: 22px;
     color: #929292;
     text-shadow: 0 1px 0 #fff;
+    padding: 0;
 }
 .form-control{
     border: 1px solid rgba(0, 0, 0, .20);
@@ -157,7 +158,77 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-weight: 300;
 }
 
-/**************** spinnner *******************/
+.config-container{
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #E4E4E4;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    padding-top: 8px;
+    position: relative;
+}
+.config-container > h2.title{
+    font-size: 14px;
+    color: #ccc;
+    font-weight: normal;
+    position: absolute;
+    top: -6px;
+    left: 5px;
+    background: #fff;
+    display: inline-block;
+    margin: 0;
+    z-index: 2;
+    padding: 0 8px;
+}
+.config-container > .form{
+    padding: 15px 16px;
+}
+.config-container > .form > .form-title{
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.config-container > .form label.radio{
+    margin-right: 10px;
+    cursor: pointer;
+    position: relative;
+}
+.config-container > .form input[type='radio']{
+    cursor: pointer;
+}
+.config-container > .form input[type='radio']:after{
+    content: " ";
+    width: 17px;
+    height: 17px;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    border: 1px solid #B6BDC1;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: sub;
+    transition: all .2s ease-in-out;
+}
+.config-container > .form input[type='radio']:checked:after{
+    border-color: #1B95E0;
+}
+.config-container > .form input[type='radio']:before{
+    content: " ";
+    position: absolute;
+    left: 5px;
+    top: 3px;
+    width: 7px;
+    height: 7px;
+    background: #1B95E0;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all .2s ease-in-out;
+}
+.config-container > .form input[type='radio']:checked:before{
+    opacity: 1;
+}
+
+/**************** spinner *******************/
 .spinner{
     display: inline-block;
     width: 18px;

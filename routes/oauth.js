@@ -15,8 +15,8 @@ function init(app, io, userList) {
 	passport.use(new FacebookStrategy({
 			clientID: "801142736696953",
 			clientSecret: "79d11bcddba54aa3125b30dec5ab4fc2",
-			callbackURL: "http://localhost:3020/auth/facebook/callback",
-			profileFields: ['id', 'gender', 'locale', 'name', 'timezone', 'displayName']
+			callbackURL: "http://chat.yjteam.co.kr/auth/facebook/callback",
+			profileFields: ['id', 'gender', 'locale', 'name', 'timezone', 'displayName', 'link']
 		},
 		function (accessToken, refreshToken, profile, done) {
 			//

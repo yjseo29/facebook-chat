@@ -20,8 +20,8 @@
 			position: relative;
 		}
 		.profile > img{
-			width: 50px;
-			height: 50px;
+			width: 80px;
+			height: 80px;
 			border-radius: 50%;
 			vertical-align: middle;
 		}
@@ -36,6 +36,7 @@
 			right: 0;
 			background-color: transparent;
 			border: 0;
+			padding: 0;
 		}
 		.profile > .btn-config > i:before{
 			font-size: 26px;
@@ -59,13 +60,14 @@
 			font-size: 28px;
 			color: #929292;
 			text-shadow: 0 1px 0 #fff;
+			padding: 0;
 		}
 		#mapLayout > .close:hover {
 			color: #656565;
 		}
 		.chat-profile > img{
-			width: 65px;
-			height: 65px;
+			width: 80px;
+			height: 80px;
 			border-radius: 50%;
 			margin-bottom: 5px;
 		}
@@ -136,7 +138,6 @@
 			-webkit-border-radius: 4px;
 		}
 		.chat-wrap{
-			display:none;
 			width: 100%;
 			max-width: 800px;
 			border-right: 1px solid #ECECEC;
@@ -146,6 +147,27 @@
 			text-align: left;
 			padding-top: 0;
 		}
+		.chat-wrap > .chat-header{
+			padding: 13px 0;
+			border-bottom: 1px solid #ECECEC;
+			text-align: center;
+			position: fixed;
+			margin-left: -399px;
+			width: 798px;
+			top: 0;
+			left: 50%;
+			background: #fff;
+			z-index: 10000;
+		}
+		.chat-wrap > .chat-header > button{
+			position: absolute;
+			left: 0;
+			top: 8px;
+			margin-top: 0;
+		}
+		.chat-wrap > .chat-header > span{
+			font-size: 16px;
+		}
 		.message-write-form{
 			position: fixed;
 			bottom: 0;
@@ -154,13 +176,13 @@
 			width: 800px;
 			padding: 15px;
 			border-top: 1px solid #ECECEC;
-			z-index: 9999;
 			border-right: 1px solid #ECECEC;
 			border-left: 1px solid #ECECEC;
+			background: #fff;
+			z-index: 10000;
 		}
 		.message-write-form input{
 			height: auto;
-			font-size: 14px;
 			border: 0;
 			font-size: 15px;
 			outline: none;
@@ -190,7 +212,7 @@
 			cursor: pointer;
 		}
 		.message-list{
-			padding-top: 15px;
+			padding-top: 60px;
 			overflow-x: hidden;
 			overflow-y: auto;
 		}
@@ -230,13 +252,24 @@
 		}
 		.message-list .message-image{
 			display: block;
-			max-width: 25%;
+			max-width: 30%;
 			position: relative;
 			margin-bottom: 30px;
 		}
+		.message-list .message-image > .message-profile-image{
+			position: absolute;
+			top: -1px;
+			left: -50px;
+		}
+		.message-list .message-image > .message-profile-image > img{
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			-webkit-border-radius: 50%;
+		}
 		.message-list .message-image.left{
 			float: left;
-			margin-left: 7px;
+			margin-left: 60px;
 			margin-top: 15px;
 		}
 		.message-list .message-image.right {
@@ -358,10 +391,24 @@
 				position: fixed;
 				height: 100%;
 			}
+			.chat-wrap{
+				border-right: 0;
+				border-left: 0;
+			}
 			.message-write-form{
 				left: 0;
 				width: 100%;
 				margin-left: 0;
+				border-right: 0;
+				border-left: 0;
+			}
+			.chat-wrap > .chat-header{
+				left: 0;
+				width: 100%;
+				margin-left: 0;
+			}
+			.message-list .message-image{
+				max-width: 45%;
 			}
 		}
 		@media (min-width: 768px){
@@ -407,7 +454,7 @@
 				<div class="match-loading-inner">
 					<span class="spinner"></span>
 					<p>매칭중입니다...</p>
-					<button type="button" onclick="btnMatchCancel()" class="btn btn-gray">취소</button>
+					<button type="button" onclick="btnMatchCancel()" class="btn btn-blue">취소</button>
 				</div>
 			</div>
 		</div>
@@ -423,7 +470,11 @@
 	</div>
 </div>
 <div id="chatLayout">
-	<div class="chat-wrap" id="chatWrap">
+	<div class="chat-wrap">
+		<div class="chat-header" id="chatHeaderLayout">
+			<button type="button" class="btn btn-blue" onclick="btnCloseChat()">나가기</button>
+			<span id="chatDisplayName">사용자</span>
+		</div>
 		<div class="message-list" id="messageList"></div>
 		<div class="message-write-form">
 			<form id="msgForm" action="/" onsubmit="return false;">
@@ -452,6 +503,15 @@
 		<div class="modal-content">
 			<button type="button" class="close" onclick="$('#configLayout').hide();" title="닫기">×</button>
 			<h1 class="title">설정</h1>
+			<div class="config-container">
+				<h2 class="title">대화상대 검색 필터</h2>
+				<div class="form">
+					<h3 class="form-title">성별</h3>
+					<label class="radio"><input type="radio" name="gender" checked>모두</label>
+					<label class="radio"><input type="radio" name="gender">여성</label>
+					<label class="radio"><input type="radio" name="gender">남성</label>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -459,12 +519,12 @@
 <div id="resInviteLayout" class="modal">
 	<div class="modal-inner">
 		<div class="modal-content" style="text-align:center;">
-			<img src="" id="resInviteProfileImage" style="width:50px;height:50px;border-radius:50%;">
+			<img src="" id="resInviteProfileImage" style="width:80px;height:80px;border-radius:50%;">
 			<p><strong id="resInviteUsername"></strong>님이 대화를 요청하였습니다.</p>
 			<span id="resInviteLeftTime" style="font-size:24px;font-weight:200;display:block;margin-bottom:10px;margin-top:10px;">15</span>
 			<div style="margin-bottom:10px;">
-				<button type="button" id="btnInviteAccept" class="btn btn-green" onclick="">수락</button>
-				<button type="button" id="btnInviteReject" class="btn btn-gray" onclick="">거절</button>
+				<button type="button" id="btnInviteAccept" class="btn btn-green" onclick="" style="margin-top:0;">수락</button>
+				<button type="button" id="btnInviteReject" class="btn btn-gray" onclick="" style="margin-top:0;">거절</button>
 			</div>
 		</div>
 	</div>
@@ -486,7 +546,7 @@
 	var matchTimeInterval;
 	var matchTimeDelay = 0;
 
-	socket.emit("init_socket_id", {id:"<%= user.id %>"});
+	socket.emit("init_user", {id:"<%= user.id %>", name:"<%= user.displayName %>" });
 
 	$(function(){
 		$("#messageList").css("height",$(document).height()-50);
@@ -518,7 +578,7 @@
 			var file = e.originalEvent.target.files[0], reader = new FileReader();
 
 			reader.addEventListener("load", function () {
-				socket.emit('image_upload',{baseurl:reader.result.replace(/^data:image\/(png|jpg|gif|jpeg);base64,/, "")});
+				socket.emit('image_upload',{baseurl:reader.result.replace(/^data:image\/(png|jpg|gif|jpeg);base64,/, ""), id:"<%= user.id %>"});
 			}, false);
 
 			reader.onerror = function (e) {
@@ -527,6 +587,18 @@
 				$("#imageLoading").hide();
 			}
 			reader.readAsDataURL(file);
+		});
+
+		$("#msgbox").focus(function(){
+			if('ontouchstart' in document.documentElement){
+
+			}
+		});
+
+		$("#msgbox").blur(function(){
+			if('ontouchstart' in document.documentElement){
+
+			}
 		});
 	});
 
@@ -545,7 +617,7 @@
 			}
 		},1000);
 		$("#matchLoadingLayout").css("display","table");
-		socket.emit("find_user", {id:"<%= user.id %>", gender:"male"});
+		socket.emit("find_user", {id:"<%= user.id %>", name:"<%= user.displayName %>", gender:"male"});
 	}
 
 	// 대화시작 취소
@@ -558,7 +630,7 @@
 
 	// 주변검색 버튼
 	function btnShowMap(){
-		$('#mapLayout').show();
+		$("#mapLayout").show();
 		socket.emit("join_map");
 		deleteAllMarkers();
 		if($("#googleMap").has("div").length == 0){
@@ -632,21 +704,28 @@
 
 	//대화요청
 	function inviteChat(id, name){
-		socket.emit("invite_chat", {uid:"<%= user.id %>", id:id});
+		socket.emit("invite_chat", {uid:"<%= user.id %>", id:id, name:name});
 	}
 
 	//대화요청 응답
 	function requestInvite(type, uid){
 		socket.emit("req_invite_accept", {uid:uid, id:"<%= user.id %>", type: type});
 		if(type == "accept"){
-			alert("수락함");
-
+			//alert("수락함");
 		}else{
-			alert("거절함");
+			//alert("거절함");
 		}
 		clearInterval(resInviteLeftTimeInterval);
 		$("#resInviteLayout").hide();
 		$("#resInviteLeftTime").html("15");
+	}
+
+	//대화 나가기
+	function btnCloseChat(){
+		socket.emit("leave_chat", {id:"<%= user.id %>", name:"<%= user.displayName %>"});
+		$("#messageList").empty();
+		$("#chatLayout").hide();
+		$("#mainLayout").show();
 	}
 
 	//사용자 리스트 가져오기
@@ -654,15 +733,21 @@
 		for(var i=0; i< data.users.length; i++){
 			var gender = "<i class='ion-female gender'></i>";
 			if(data.users[i].gender == "male") gender = "<i class='ion-male gender'></i>";
-			createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="bodyContent"><p>'+gender+data.users[i].name+'</p><button type="button" class="btnInviteChat" onclick="inviteChat(\''+data.users[i].id+'\', \''+data.users[i].name+'\')">대화요청</div></div>');
+			if(data.users[i].id != "<%= user.id %>"){
+				createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="bodyContent"><p>'+gender+data.users[i].name+'</p><button type="button" class="btnInviteChat" onclick="inviteChat(\''+data.users[i].id+'\', \''+data.users[i].name+'\')">대화요청</button></div></div>');
+			}else{
+				createMarker(data.users[i].lat, data.users[i].lng, data.users[i].id, '<div id="content"><div id="bodyContent"><p>'+gender+data.users[i].name+'</p></div></div>');
+			}
+
 		}
 	});
 
 	//사용자 추가
 	socket.on('res_add_user',function(data){
+		console.log(data);
 		var gender = "<i class='ion-female gender'></i>";
 		if(data.user.gender == "male") gender = "<i class='ion-male gender'></i>";
-		createMarker(data.user.lat, data.user.lng, data.user.id, '<div id="content"><div id="bodyContent"><p>'+gender+data.user.name+'</p><button type="button" class="btnInviteChat" onclick="inviteChat(\''+data.user.id+'\', \''+data.user.name+'\')">대화요청</div></div>');
+		createMarker(data.user.lat, data.user.lng, data.user.id, '<div id="content"><div id="bodyContent"><p>'+gender+data.user.name+'</p><button type="button" class="btnInviteChat" onclick="inviteChat(\''+data.user.id+'\', \''+data.user.name+'\')">대화요청</button></div></div>');
 	});
 
 	//사용자 삭제
@@ -681,13 +766,13 @@
 			matchTimeDelay = 0;
 			$("#mainLayout").hide();
 			$("#chatProfile").css("display","table").find(".chat-profile").empty().append("<img src='http://graph.facebook.com/"+data.user.id+"/picture?type=large&width=1024&height=1024'><p><strong>"+data.user.name+"</strong>님과 매칭되었습니다.<br>곧 대화가 시작됩니다...</p>");
+			$("#chatDisplayName").html(data.user.name);
+			socket.emit("init_chat", {uid:data.uid, id:"<%= user.id %>", name:"<%= user.displayName %>"});
 			$("#messageList").empty();
-			socket.emit("init_chat", {uid:data.uid, id:"<%= user.id %>"});
 			setTimeout(function(){
 				$("#chatLayout").show();
 				socket.emit("start_chat", {uid:data.uid});
 				$("#chatProfile").hide();
-				$("#chatWrap").show();
 			},3000);
 		}
 	});
@@ -696,7 +781,7 @@
 	socket.on('invite_chat_result', function(data){
 		if(data.result){
 			$("#inviteLayout").css("display","table");
-			$("#inviteForUsername").html(name);
+			$("#inviteForUsername").html(data.name);
 			inviteLeftTimeInterval = setInterval(function(){
 				var second = parseInt($("#inviteLeftTime").text());
 				second--;
@@ -732,22 +817,54 @@
 				}
 			},1000);
 		}else if(data.type == "accept"){
-			alert("대화 수락!!");
-			$("#inviteLayout").hide();
-			clearInterval(inviteLeftTimeInterval);
-			$("#inviteLeftTime").html("15");
+			if(data.uid == "<%= user.id %>"){
+				clearInterval(inviteLeftTimeInterval);
+				$("#inviteLayout").hide();
+				$("#inviteLeftTime").html("15");
+
+				$("#mainLayout").hide();
+				$("#chatProfile").css("display","table").find(".chat-profile").empty().append("<img src='http://graph.facebook.com/"+data.id+"/picture?type=large&width=1024&height=1024'><p><strong>"+data.name+"</strong>님이 대화를 수락하였습니다.<br>곧 대화가 시작됩니다...</p>");
+				$("#chatDisplayName").html(data.name);
+				socket.emit("init_chat", {uid:data.uid, id:"<%= user.id %>", name:"<%= user.displayName %>"});
+				$("#messageList").empty();
+				setTimeout(function(){
+					$("#chatLayout").show();
+					socket.emit("start_chat", {uid:data.uid});
+					$("#chatProfile").hide();
+				},3000);
+			}else{
+				clearInterval(resInviteLeftTimeInterval);
+				$("#resInviteLayout").hide();
+				$("#resInviteLeftTime").html("15");
+
+				$("#mainLayout").hide();
+				$("#chatProfile").css("display","table").find(".chat-profile").empty().append("<img src='http://graph.facebook.com/"+data.id+"/picture?type=large&width=1024&height=1024'><p><strong>"+data.name+"</strong>님의 대화를 수락하였습니다.<br>곧 대화가 시작됩니다...</p>");
+				$("#chatDisplayName").html(data.name);
+				socket.emit("init_chat", {uid:data.uid, id:"<%= user.id %>", name:"<%= user.displayName %>"});
+				$("#messageList").empty();
+				setTimeout(function(){
+					$("#chatLayout").show();
+					socket.emit("start_chat", {uid:data.uid});
+					$("#chatProfile").hide();
+				},3000);
+			}
 		}else{
-			alert("대화 거절!!");
-			$("#inviteLayout").hide();
-			clearInterval(inviteLeftTimeInterval);
-			$("#inviteLeftTime").html("15");
+			if(data.uid == "<%= user.id %>"){
+				clearInterval(inviteLeftTimeInterval);
+				$("#inviteLayout").hide();
+				$("#inviteLeftTime").html("15");
+				alert("상대방이 대화를 거절하였습니다.");
+			}else{
+				clearInterval(resInviteLeftTimeInterval);
+				$("#resInviteLayout").hide();
+				$("#resInviteLeftTime").html("15");
+			}
 		}
 
 	});
 
 	// 대화 시스템 메시지 수신
 	socket.on('broadcast_message',function(data){
-		console.log(data);
 		$("#messageList").append("<div class='system-message'>"+data.msg+"<span class='time'>"+data.time+"</span></div>");
 	});
 
@@ -758,7 +875,7 @@
 			if("<%= user.id %>" == data.id){
 				$message = $("<div class='message right on'>"+data.msg+"<div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
 			}else{
-				$message = $("<div class='message left on'><a class='message-profile-image' href='https://www.facebook.com/profile.php?id="+data.id+"' target='_blank'><img src='http://graph.facebook.com/"+data.id+"/picture?type=large&width=1024&height=1024'></a>"+data.msg+"<div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
+				$message = $("<div class='message left on'><a class='message-profile-image' href='https://www.facebook.com/app_scoped_user_id/"+data.id+"' target='_blank'><img src='http://graph.facebook.com/"+data.id+"/picture?type=large&width=512&height=512'></a>"+data.msg+"<div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
 			}
 			$("#messageList").append($message);
 			setTimeout(function(){
@@ -768,7 +885,7 @@
 			if("<%= user.id %>" == data.id){
 				$("#messageList").append("<div class='message-image right'><a href='"+data.msg+"' target='_blank'><img src='"+data.msg+"'></a><div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
 			}else{
-				$("#messageList").append("<div class='message-image left'><div class='message-username'>"+data.username+"</div><a href='"+data.msg+"' target='_blank'><img src='"+data.msg+"'></a><div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
+				$("#messageList").append("<div class='message-image left'><a class='message-profile-image' href='https://www.facebook.com/app_scoped_user_id/"+data.id+"' target='_blank'><img src='http://graph.facebook.com/"+data.id+"/picture?type=large&width=512&height=512'></a><a href='"+data.msg+"' target='_blank'><img src='"+data.msg+"'></a><div class='message-time'>"+data.time+"</div></div><div class='message-line'></div>");
 			}
 			$("#imageUploadBtn").show();
 			$("#imageLoading").hide();
