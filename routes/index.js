@@ -24,14 +24,14 @@ module.exports = function(app, io, userList) {
 			//사용자 리스트에 추가
 			if (userList[req.session.passport.user.id] == undefined) {
 				userList[req.session.passport.user.id] = new Object();
-				userList[req.session.passport.user.id].name = req.session.passport.user.displayName;
-				userList[req.session.passport.user.id].id = req.session.passport.user.id;
-				userList[req.session.passport.user.id].lat = req.body.lat;
-				userList[req.session.passport.user.id].lng = req.body.lng;
-				userList[req.session.passport.user.id].gender = req.user.gender;
-				userList[req.session.passport.user.id].random = false;
-				userList[req.session.passport.user.id].state = "ready";
 			}
+			userList[req.session.passport.user.id].name = req.session.passport.user.displayName;
+			userList[req.session.passport.user.id].id = req.session.passport.user.id;
+			userList[req.session.passport.user.id].lat = req.body.lat;
+			userList[req.session.passport.user.id].lng = req.body.lng;
+			userList[req.session.passport.user.id].gender = req.user.gender;
+			userList[req.session.passport.user.id].random = false;
+			userList[req.session.passport.user.id].state = "ready";
 		}
 
 		//io.sockets.in("home").emit('userCnt', {cnt:Object.keys(userList).length});
