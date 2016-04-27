@@ -866,6 +866,9 @@
 	// 대화 시스템 메시지 수신
 	socket.on('broadcast_message',function(data){
 		$("#messageList").append("<div class='system-message'>"+data.msg+"<span class='time'>"+data.time+"</span></div>");
+		setTimeout(function(){
+			$("#messageList").scrollTop($("#messageList").prop("scrollHeight"));
+		},200);
 	});
 
 	// 대화 메시지 수신
