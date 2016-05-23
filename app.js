@@ -9,7 +9,8 @@ var express = require('express')
   , fs = require('fs')
   , mkdirp = require('mkdirp')
   , base64 = require('node-base64-image')
-  , gm = require('gm').subClass({imageMagick: true});
+  , gm = require('gm').subClass({imageMagick: true})
+  , winston = require('winston');
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -25,6 +26,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 var httpServer = http.listen(app.get('port'), function(){
 	console.log("Express server listening on port " + app.get('port'));
+});
+winston.add(winston.transports.File, {
+	level: 'info',
+	json: false,
+	filename: 'logs/app.log',
+	timestamp: function(){
+		return new Date().toString();
+	}
 });
 
 var io = require('socket.io').listen(httpServer);

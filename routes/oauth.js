@@ -14,15 +14,15 @@ function init(app, io, userList) {
 	var FacebookStrategy = require('passport-facebook').Strategy;
 	passport.use(new FacebookStrategy({
 			clientID: "801142736696953",
+			// done 메소드에 전달된 정보가 세션에 저장된다.
 			clientSecret: "79d11bcddba54aa3125b30dec5ab4fc2",
-			callbackURL: "http://chat.yjteam.co.kr/auth/facebook/callback",
-			profileFields: ['id', 'gender', 'locale', 'name', 'timezone', 'displayName', 'link']
+				callbackURL: "http://chat.yjteam.co.kr/auth/facebook/callback",
+				profileFields: ['id', 'gender', 'locale', 'name', 'timezone', 'displayName', 'link']
 		},
 		function (accessToken, refreshToken, profile, done) {
 			//
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			// req.session.passport 정보를 저장하는 단계이다.
-			// done 메소드에 전달된 정보가 세션에 저장된다.
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			//
 			return done(null, profile);
